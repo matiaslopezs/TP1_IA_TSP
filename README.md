@@ -1,22 +1,13 @@
-# Quasar App (iatarea1)
+# Trabajo Práctico #1 de Inteligencia Artificial: TSP
 
-A Quasar Framework app
+Integrantes:
+* Walter Gauto
+* Matías López
+* Luis Meza
+* David Núñez
 
-## Install the dependencies
-```bash
-yarn
-```
-
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
-
-
-### Build the app for production
-```bash
-quasar build
-```
-
-### Customize the configuration
-See [Configuring quasar.conf.js](https://v2.quasar.dev/quasar-cli/quasar-conf-js).
+## Pasos para instalar
+- Tener instalado Node JS y NPM
+- Instalar quasar cli con ``sudo npm install -g @quasar/cli``
+- Estando en la carpeta principal Instalar dependencias con ``npm install``
+- Ejecutar el proyecto con ``quasar dev``
