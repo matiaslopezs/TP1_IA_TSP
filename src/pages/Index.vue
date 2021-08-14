@@ -30,6 +30,8 @@
             :label="`Cantidad de ciudades ${useRealData ? 'Max:' + MAX_CITIES : ''}`" />
           <q-btn outline color="primary" class="q-ml-md" @click="startNewSimulation">Simular</q-btn>
           <q-btn v-if="graphs.length > 0" outline color="red" class="q-ml-md" @click="clearSimulations">Limpiar</q-btn>
+          <!-- TODO: DELETE BUTTON -->
+          <q-btn style="margin-left:10px" color="primary" @click="resolveTestingBt">Backtracking testing</q-btn>
         </div>
       </div>
     </div>
@@ -93,6 +95,7 @@ export default {
       showPinTooltips: true,
       iterations: 200,
       loading: false,
+      btTestingGraph: null
     }
   },
   methods: {
@@ -111,6 +114,18 @@ export default {
           this.loading = false;
         }
       }, 500);
+    },
+    async resolveTestingBt() {
+      if (this.btTestingGraph)
+        this.graphs.push(await new CitiesGraph(this.btTestingGraph.clone(SORT_BACKTRACKING)).sortNodes());
+      else if (this.cityAmount) {
+        this.btTestingGraph = await new CitiesGraph({ 
+          size: parseInt(this.cityAmount),
+          useRealData: this.useRealData,
+          sortType: SORT_BACKTRACKING
+        }).sortNodes();
+        this.graphs.push(this.btTestingGraph);
+      }
     },
     async resolveSimulation() {
       // Generate base graph
