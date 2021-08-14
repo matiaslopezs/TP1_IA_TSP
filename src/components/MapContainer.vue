@@ -12,7 +12,7 @@
             <!-- MARKS -->
             
             <l-marker v-for="(marker, index) of mapMarkers" :key="index" :lat-lng="marker.coords">
-                <l-tooltip :options="{ permanent: true, interactive: false, offset: [0, 0] }">
+                <l-tooltip v-if="showPinTooltips" :options="{ permanent: true, interactive: false, offset: [0, 0] }">
                     <div><strong>{{index}}. {{marker.name}}</strong></div>
                 </l-tooltip>
             </l-marker>
@@ -45,7 +45,8 @@ export default {
     props: {
         markers: Array,
         middles: Array,
-        autoFocus: Boolean
+        autoFocus: Boolean,
+        showPinTooltips: Boolean
     },
     data() {
         return {
@@ -84,7 +85,9 @@ export default {
             return this.markers.map(m => { return { coords: latLng(m.lat, m.lng), name: m.name } });
         },
         mapMiddles() {
-            return this.middles.map(m => { return { coords: latLng(m.lat, m.lng), weight: m.weight } })
+            return this.showPinTooltips ? 
+                this.middles.map(m => { return { coords: latLng(m.lat, m.lng), weight: m.weight } }) :
+                [];
         },
         polyPath() { 
             const latlngs = [];
@@ -122,7 +125,12 @@ export default {
         }
     },
     watch: {
-        
+        showPinTooltips() {
+            this.showMap = false;
+            this.$nextTick(_ => {
+                this.showMap = true;
+            });
+        }
     },
 }
 </script>

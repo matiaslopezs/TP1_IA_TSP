@@ -1,36 +1,12 @@
 import cities, { shuffledCities } from './cities.js';
 import _travelNextCityBackTracking from './tspBacktracking';
-export const MAX_CITIES = cities.length;
+import _travelNextCityBackHeuristic from './tspHeuristic';
 
-const sortGraph = (graph) => {
-    // Start timer
-    var t0 = performance.now()
-    // Start traveling
-    const resultArr = _travelNextCityBackTracking(graph, [graph.originNode]);
-    const { sortedNodes, finalWeight } = resultArr[0];
-    
-    // End timer
-    var t1 = performance.now()
-    // Return data
-    return { totalTimeMs: t1 - t0, result: resultArr };
-};
-const _travelNextCity = (graph, sortedNodes = [], totalWeight = 0) => {
-    /** Get nearest valid city to current */
-    const nearest = graph.nearestCurrentUnvisitedNeighbor;
-    if (!nearest) {
-        /** Set previous city visited and current city to origin */
-        graph.currentCity.visited = true;
-        graph.currentCity = graph.originIndex;
-        /** Travel to origin */
-        const finalWeight = totalWeight + graph.currentWeightToOrigin;
-        return { sortedNodes, finalWeight }; // Concat origin to close circle
-    }
-    /** Set previous city to visited */
-    graph.currentCity.visited = true;
-    graph.currentCity = nearest.to;
-    /** Travel to next city */
-    return _travelNextCity(graph, sortedNodes.concat(graph.currentCity), totalWeight + nearest.weight);
-};
+export const MAX_CITIES = cities.length;
+export const SORT_HEURISTIC = "Heuristico";
+export const SORT_BACKTRACKING = "Back Tracking";
+export const SORT_THEVEGAS = "Las Vegas";
+export const SORT_ALL = "Todos";
 
 const distanceBetweenCoords = (lat1, lng1, lat2, lng2) => {
     const toRad = (value) => value * Math.PI / 180;
@@ -48,11 +24,12 @@ const distanceBetweenCoords = (lat1, lng1, lat2, lng2) => {
 };
 
 export default class CitiesGraph {
-    constructor({ size, table, nodes, useRealData, symmetricalConnections, maxWeight, originIndex, citiesName } = {}) {
+    constructor({ size, table, nodes, useRealData, symmetricalConnections, maxWeight, originIndex, citiesName, sortType } = {}) {
+        this.sortType = sortType;
         this.useRealData = !!useRealData;
         this.citiesName = citiesName || shuffledCities();
         this.size = size || this._getRandomBetween(3, this.useRealData ? MAX_CITIES : 5000);
-        this.originIndex = originIndex || this._getRandomBetween(0, this.size);
+        this.originIndex = originIndex === undefined ? this._getRandomBetween(0, this.size) : originIndex;
         this.maxWeight = maxWeight || this._getRandomBetween(1, 200);
         this.symmetricalConnections = symmetricalConnections === undefined ? true : symmetricalConnections;
         [this.table, this.nodes] = table && nodes ? [table, nodes] : this.getRandomGraph();
@@ -61,33 +38,73 @@ export default class CitiesGraph {
         this.finalWeight = -1;
         this.totalTimeMs = -1;
         this.sortDate = null;
-        this.middlePoints = null;
+        this.sortResult = [];
         
         if (symmetricalConnections) this.makeSymmetric();
     }
+    distanceBetweenNodes(node1, node2) {
+        return distanceBetweenCoords(node1.lat, node1.lng, node2.lat, node2.lng);
+    }
+    clone(sortType) {
+        return {
+            size: this.size,
+            table: this.talbe,
+            nodes: this.nodes,
+            useRealData: this.useRealData,
+            symmetricalConnections: this.symmetricalConnections,
+            maxWeight: this.maxWeight,
+            originIndex: this.originIndex,
+            citiesName: this.citiesName,
+            sortType: sortType || this.sortType
+        }
+    }
     sortNodes() {
-        const { totalTimeMs, result } = sortGraph(this);
-        this.sortedNodes = result[0].sortedNodes;
-        this.finalWeight = result[0].finalWeight;
-        this.totalTimeMs = totalTimeMs;
-        this.middlePoints = [];
+        // Start timer
+        var t0 = performance.now()
+        // Start traveling
+        const sortResult = this.sortType === SORT_BACKTRACKING ?
+            _travelNextCityBackTracking(this, [this.originNode]) : 
+            _travelNextCityBackHeuristic(this, [this.originNode]);
+        // End timer
+        var t1 = performance.now()
+        // Set total time
+        this.totalTimeMs = t1 - t0;
+        // Set final weight
+        this.finalWeight = sortResult[0].finalWeight;
+        // Set current date
         this.sortDate = new Date();
-
-        const setMidPointBetween = (i1, i2) => {
-            let init = this.sortedNodes[i1];
-            let end = this.sortedNodes[i2];
-            
-            let edge = this.table[init.index][end.index];
-            let mid = [(end.lat + init.lat) / 2.0, (end.lng + init.lng) / 2.0];
-
-            if (edge) this.middlePoints.push({ lat: mid[0], lng: mid[1], weight: edge.weight });
+        
+        /** Get a list of middle points between a list of nodes */
+        const getMidPoints = (nodes) => {
+            const midPoints = [];
+            /** Find middle point of edges to show it weight */
+            for (let i = 1; i < nodes.length; i++) 
+                midPoints.push(getMidPointBetween(nodes[i - 1], nodes[i]));
+            /** Find middle point of initial and final points */
+            midPoints.push(getMidPointBetween(nodes[0], nodes[nodes.length - 1]));
+            return midPoints;
         };
-
-        /** Find middle point of edges to show it weight */
-        for (let i = 1; i < this.sortedNodes.length; i++) 
-            setMidPointBetween(i - 1, i);
-        /** Find middle point of initial and final points */
-        setMidPointBetween(0, this.sortedNodes.length - 1);
+        /** Get the middle point and weight between two nodes */
+        const getMidPointBetween = (init, end) => {            
+            let weight = this.table[init.index][end.index].weight;
+            let lat = (end.lat + init.lat) / 2.0;
+            let lng = (end.lng + init.lng) / 2.0;
+            return { lat, lng, weight };
+        };
+        /** Create data information for sub graphs */
+        this.sortResult = sortResult
+            .reduce((total, r) => {
+                total.subGraphs.push({
+                    title: r.title,
+                    sortedNodes: r.sortedNodes,
+                    finalWeight: r.finalWeight,
+                    middlePoints: getMidPoints(r.sortedNodes)
+                });
+                return total;
+            }, {
+                ...this,
+                subGraphs: []
+            });
 
         return this;
     }
@@ -126,7 +143,7 @@ export default class CitiesGraph {
             if (unvisited[i].weight < minNode.weight)
                 minNode = unvisited[i];
         
-        return { to: minNode.to, weight: minNode.weight };
+        return { index: minNode.to, weight: minNode.weight };
     }
     getRandomGraph() {
         const nodes = new Array(this.size).fill(undefined)
