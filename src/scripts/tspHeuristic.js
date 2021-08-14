@@ -8,7 +8,7 @@ const _travelNextCity = (graph, sortedNodes = [], totalWeight = 0) => {
         graph.currentCity.visited = true;
         graph.currentCity = graph.originIndex;
         /** Calc calcTwoOpt */
-        const bestTwoOpt = { ...calcTwoOpt(graph, sortedNodes, finalWeight, graph.maxIterations), title: "2-opt" };
+        const bestTwoOpt = { ...calcTwoOpt(graph, sortedNodes, finalWeight, graph.iterations), title: "2-opt" };
         /** Return subgraphs */
         return [{ sortedNodes, finalWeight, title: "Avaro" }].concat(bestTwoOpt);
     }

@@ -1,12 +1,12 @@
 <template>
   <q-page class="column">
 
-    <!-- TODO: Hacer async y poner un mensaje de "Espere un momento \n Esto podría tomar segundos, minutos, días, meses, años o milenios" -->
-
     <!-- GENERAL OPTIONS -->
 
     <div class="row justify-between">
+
       <!-- SET SORT TYPE -->
+
       <div class="column q-ma-md">
         <div class="row items-center">
           <div v-for="type of [SORT_HEURISTIC, SORT_BACKTRACKING, SORT_THEVEGAS, SORT_ALL]" :key="type">
@@ -20,38 +20,51 @@
       </div>
 
       <!-- SET SORT PROPS -->
+
       <div>
         <div class="row q-pa-md">
           <q-checkbox left-label v-model="useRealData" class="text-grey-7" label="Usar datos reales" />
-          <q-input outlined v-model="cityAmount" style="width:300px" 
+          <q-input outlined v-model="iterations" style="width:160px;margin-right:10px" 
+            label="Iteraciones (2-OPT)" />
+          <q-input outlined v-model="cityAmount" style="width:220px" 
             :label="`Cantidad de ciudades ${useRealData ? 'Max:' + MAX_CITIES : ''}`" />
           <q-btn outline color="primary" class="q-ml-md" @click="startNewSimulation">Simular</q-btn>
+          <q-btn v-if="graphs.length > 0" outline color="red" class="q-ml-md" @click="clearSimulations">Limpiar</q-btn>
         </div>
       </div>
     </div>
 
     <!-- SIMULATIONS -->
 
-    <div v-for="(graph, index) of graphs" :key="index" class="map-container">
-      <!-- MAP INFO -->
-      <div class="row wrap">
-        <div v-for="(info, index) of graphInfo(graph)" v-show="!info.hide"
-            :key="index" class="column map-info-container justify-end">
-          <div class="column map-info-content">
-            <div class="text-grey-8">{{info.title}}</div>
-            <div><strong>{{info.value}}</strong></div>
+    <div v-if="loading">
+      <div class="flex flex-center column text-white" style="position:absolute;top:-50px;left:0;min-width:100vw;height:100vh;background-color:#0008;z-index:10000">
+        <q-spinner color="white" size="6em"/>
+        <div style="font-size:50px;margin-top:10px">Espere un momento</div>
+        <div style="font-size:22px;margin-top:10px">Esto podría tomar segundos, minutos, días, meses, años o milenios...</div>
+      </div>
+    </div>
+    <div v-else>
+      <div v-for="(graph, index) of graphs" :key="index" class="map-container">
+        <!-- MAP INFO -->
+        <div class="row wrap">
+          <div v-for="(info, index) of graphInfo(graph)" v-show="!info.hide"
+              :key="index" class="column map-info-container justify-end">
+            <div class="column map-info-content">
+              <div class="text-grey-8">{{info.title}}</div>
+              <div><strong>{{info.value}}</strong></div>
+            </div>
           </div>
         </div>
-      </div>
-      <!-- MAP RESULTS -->
-      <div v-for="(subGraph, index) of graph.sortResult.subGraphs" :key="'sub-'+index" class="column"
-          style="border-bottom:1px solid #888;position:relative">
-          <div class="total-weight-menu">
-            <div>Peso total {{subGraph.title ? `(${subGraph.title})` : ''}}</div>
-            <div><strong>{{subGraph.finalWeight}}</strong></div>
-          </div>
-        <MapContainer :markers="subGraph.sortedNodes" :middles="subGraph.middlePoints" 
-          :autoFocus="true" :showPinTooltips="showPinTooltips" />
+        <!-- MAP RESULTS -->
+        <div v-for="(subGraph, index) of graph.sortResult.subGraphs" :key="'sub-'+index" class="column"
+            style="border-bottom:1px solid #888;position:relative">
+            <div class="total-weight-menu">
+              <div>Peso total {{subGraph.title ? `(${subGraph.title})` : ''}}</div>
+              <div><strong>{{subGraph.finalWeight}}</strong></div>
+            </div>
+          <MapContainer :markers="subGraph.sortedNodes" :middles="subGraph.middlePoints" 
+            :autoFocus="true" :showPinTooltips="showPinTooltips" />
+        </div>
       </div>
     </div>
 
@@ -78,38 +91,49 @@ export default {
       error: "",
       sortType: SORT_HEURISTIC,
       showPinTooltips: true,
+      iterations: 200,
+      loading: false,
     }
   },
   methods: {
-    startNewSimulation() {
-      try {
-        const _intCityAmount = parseInt(this.cityAmount);
-        if (_intCityAmount < 3) { throw "3 ciudades como mínimo" }
-        else if (!this.useRealData) this.resolveSimulation();
-        else if (_intCityAmount > MAX_CITIES) { throw `${MAX_CITIES} como máximo` }
-        else this.resolveSimulation();
-      }
-      catch (error) { 
-        this.error = error;
-        console.error(error);
-      }
+    async startNewSimulation() {
+      this.loading = true;
+      setTimeout(async () => {
+        try {
+          const _intCityAmount = parseInt(this.cityAmount);
+          if (_intCityAmount < 3) { throw "3 ciudades como mínimo" }
+          else if (!this.useRealData) await this.resolveSimulation();
+          else if (_intCityAmount > MAX_CITIES) { throw `${MAX_CITIES} como máximo` }
+          else await this.resolveSimulation();
+        }
+        catch (error) { 
+          this.error = error;
+          this.loading = false;
+        }
+      }, 500);
     },
-    resolveSimulation() {
+    async resolveSimulation() {
       // Generate base graph
       const graph = new CitiesGraph({ 
-        size: parseInt(this.cityAmount), 
+        size: parseInt(this.cityAmount),
+        iterations: parseInt(this.iterations),
         useRealData: this.useRealData, 
         sortType: this.sortType 
       });
       // Sort base graph by type
       if (this.sortType === SORT_ALL) {
         // Sort by all tipes
-        this.graphs.push(new CitiesGraph(graph.clone(SORT_BACKTRACKING)).sortNodes());
-        this.graphs.push(new CitiesGraph(graph.clone(SORT_HEURISTIC)).sortNodes());
-        this.graphs.push(new CitiesGraph(graph.clone(SORT_THEVEGAS)).sortNodes());
+        this.graphs.push(await new CitiesGraph(graph.clone(SORT_BACKTRACKING)).sortNodes());
+        this.graphs.push(await new CitiesGraph(graph.clone(SORT_HEURISTIC)).sortNodes());
+        this.graphs.push(await new CitiesGraph(graph.clone(SORT_THEVEGAS)).sortNodes());
       }
       // Sort by self type
-      else this.graphs.unshift(graph.sortNodes());
+      else this.graphs.unshift(await graph.sortNodes());
+      // Stop loading and show maps
+      this.loading = false;
+    },
+    clearSimulations() {
+      this.graphs = [];
     },
     graphInfo(graph) {
       return [{
@@ -131,6 +155,10 @@ export default {
         title: "Ciudad inicial",
         value: graph.originNode.name,
         hide: !graph.useRealData
+      }, {
+        title: "Iteraciones 2-OPT",
+        value: graph.iterations,
+        hide: !graph.sortType === SORT_HEURISTIC
       },{
         title: "Ciudades recorridas",
         value: graph.citiesToVisit.map(c => c.name).join(", "),

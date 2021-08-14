@@ -24,7 +24,7 @@ const distanceBetweenCoords = (lat1, lng1, lat2, lng2) => {
 };
 
 export default class CitiesGraph {
-    constructor({ size, table, nodes, useRealData, symmetricalConnections, maxWeight, originIndex, citiesName, sortType } = {}) {
+    constructor({ size, table, nodes, useRealData, symmetricalConnections, maxWeight, originIndex, citiesName, sortType, iterations } = {}) {
         this.sortType = sortType;
         this.useRealData = !!useRealData;
         this.citiesName = citiesName || shuffledCities();
@@ -39,6 +39,7 @@ export default class CitiesGraph {
         this.totalTimeMs = -1;
         this.sortDate = null;
         this.sortResult = [];
+        this.iterations = iterations || 200;
         
         if (symmetricalConnections) this.makeSymmetric();
     }
@@ -59,6 +60,11 @@ export default class CitiesGraph {
         }
     }
     sortNodes() {
+        return new Promise(resolve => {
+            resolve(this._sortNodes());
+        });
+    }
+    _sortNodes() {
         // Start timer
         var t0 = performance.now()
         // Start traveling

@@ -11,7 +11,7 @@
             
             <!-- MARKS -->
             
-            <l-marker v-for="(marker, index) of mapMarkers" :key="index" :lat-lng="marker.coords">
+            <l-marker v-for="(marker, index) of mapMarkers" :key="'mk-'+index" :lat-lng="marker.coords">
                 <l-tooltip v-if="showPinTooltips" :options="{ permanent: true, interactive: false, offset: [0, 0] }">
                     <div><strong>{{index}}. {{marker.name}}</strong></div>
                 </l-tooltip>
@@ -19,7 +19,7 @@
 
             <!-- MIDDLE POINTS -->
 
-            <l-marker v-for="(middle, index) of mapMiddles" :key="index"
+            <l-marker v-for="(middle, index) of mapMiddles" :key="'mp'+index"
                     :lat-lng="middle.coords" :icon="midPin">
                 <l-tooltip :options="{ permanent: true, interactive: false, offset: [0, -1] }">
                     <div><strong>{{middle.weight}}</strong></div>
