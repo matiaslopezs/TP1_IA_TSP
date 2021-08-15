@@ -138,7 +138,7 @@ export default {
         iterations: parseInt(this.iterations),
         useRealData: this.useRealData, 
         sortType: this.sortType,
-        numberOfTies: this.numberOfTies
+        numberOfTies: parseInt(this.numberOfTies)
       });
       // Sort base graph by type
       if (this.sortType === SORT_ALL) {
