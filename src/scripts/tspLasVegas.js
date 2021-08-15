@@ -1,9 +1,9 @@
 
 
-const _travelNextCity = ( graph, sortedNodes = [], totalWeight = 0, numberOfTries = 1000 ) => {
+const _travelNextCity = ( graph, sortedNodes = [], totalWeight = 0 ) => {
     let bestAnswer = { finalWeight: Number.MAX_VALUE, sortedNodes: [] };
     const init = graph.currentCity.index;
-    for (let j = 0; j < numberOfTries; j++) {
+    for (let j = 0; j < graph.numberOfTries; j++) {
         let currentAnswerCityIndexes = [ init ];
         graph.currentCity = init;
         let currentWeight = 0;

@@ -1,6 +1,6 @@
 import cities, { shuffledCities } from './cities.js';
 import _travelNextCityBackTracking from './tspBacktracking';
-import _travelNextCityBackHeuristic from './tspHeuristic';
+import _travelNextCityHeuristic from './tspHeuristic';
 import _travelNextCityLasVegas from './tspLasVegas';
 export const MAX_CITIES = cities.length;
 export const SORT_HEURISTIC = "Heuristico";
@@ -24,7 +24,7 @@ const distanceBetweenCoords = (lat1, lng1, lat2, lng2) => {
 };
 
 export default class CitiesGraph {
-    constructor({ size, table, nodes, useRealData, symmetricalConnections, maxWeight, originIndex, citiesName, sortType, iterations } = {}) {
+    constructor({ size, table, nodes, useRealData, symmetricalConnections, maxWeight, originIndex, citiesName, sortType, iterations, numberOfTries } = {}) {
         this.sortType = sortType;
         this.useRealData = !!useRealData;
         this.citiesName = citiesName || shuffledCities();
@@ -40,6 +40,7 @@ export default class CitiesGraph {
         this.sortDate = null;
         this.sortResult = [];
         this.iterations = iterations || 200;
+        this.numberOfTries = numberOfTries || 1000;
         
         if (symmetricalConnections) this.makeSymmetric();
     }
@@ -56,6 +57,7 @@ export default class CitiesGraph {
             maxWeight: this.maxWeight,
             originIndex: this.originIndex,
             citiesName: this.citiesName,
+            numberOfTries: this.numberOfTries,
             sortType: sortType || this.sortType
         }
     }
@@ -70,7 +72,8 @@ export default class CitiesGraph {
         // Start traveling
         const sortResult = this.sortType === SORT_BACKTRACKING ?
             _travelNextCityBackTracking(this, [this.originNode]) : this.sortType === SORT_HEURISTIC ?
-            _travelNextCityBackHeuristic(this, [this.originNode]) : _travelNextCityLasVegas(this, [this.originNode]);
+                _travelNextCityHeuristic(this, [this.originNode]) :
+                _travelNextCityLasVegas(this, [this.originNode]);
         // End timer
         var t1 = performance.now()
         // Set total time

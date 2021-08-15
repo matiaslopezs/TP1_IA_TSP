@@ -23,7 +23,10 @@
 
       <div>
         <div class="row q-pa-md">
+          <!-- INPUTS --> 
           <q-checkbox left-label v-model="useRealData" class="text-grey-7" label="Usar datos reales" />
+          <q-input v-if="sortType === SORT_THEVEGAS || sortType === SORT_ALL" outlined v-model="numberOfTies" style="width:200px;margin-right:10px" 
+            label="Número de intentos (Las Vegas)" />
           <q-input v-if="sortType === SORT_HEURISTIC || sortType === SORT_ALL" outlined v-model="iterations" style="width:160px;margin-right:10px" 
             label="Iteraciones (2-OPT)" />
           <q-input outlined v-model="cityAmount" style="width:220px" 
@@ -94,6 +97,7 @@ export default {
       sortType: SORT_HEURISTIC,
       showPinTooltips: true,
       iterations: 200,
+      numberOfTies: 1000,
       loading: false,
       btTestingGraph: null
     }
@@ -133,7 +137,8 @@ export default {
         size: parseInt(this.cityAmount),
         iterations: parseInt(this.iterations),
         useRealData: this.useRealData, 
-        sortType: this.sortType 
+        sortType: this.sortType,
+        numberOfTies: this.numberOfTies
       });
       // Sort base graph by type
       if (this.sortType === SORT_ALL) {
