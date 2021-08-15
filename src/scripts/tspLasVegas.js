@@ -9,8 +9,10 @@ const _travelNextCity = ( graph, sortedNodes = [], totalWeight = 0 ) => {
         let currentWeight = 0;
         for (let i = 0; i < graph.size - 1; i++) {
             let nextCityIndex = Math.floor(Math.random() * graph.size);
-            while( currentAnswerCityIndexes.includes(nextCityIndex) ){
+            while(currentAnswerCityIndexes.includes(nextCityIndex)){
                 nextCityIndex = Math.floor(Math.random() * graph.size);
+                /** Increase amount of visited nodes */
+                graph.visitedNodes += 1;
             }
             const nextCity = graph.nodes[nextCityIndex];
             currentWeight+= graph.getCurrentWeightTo(nextCity);

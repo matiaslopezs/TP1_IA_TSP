@@ -1,5 +1,7 @@
 
 const _travelNextCity = (graph, sortedNodes = [], totalWeight = 0) => {
+    /** Increase amount of visited nodes */
+    graph.visitedNodes += 1;
     /** Base case */
     if (sortedNodes.length === graph.size) {
         return [{

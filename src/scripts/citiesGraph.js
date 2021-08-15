@@ -41,6 +41,7 @@ export default class CitiesGraph {
         this.sortResult = [];
         this.iterations = iterations || 200;
         this.numberOfTries = numberOfTries || 1000;
+        this.visitedNodes = 0;
         
         if (symmetricalConnections) this.makeSymmetric();
     }
@@ -218,5 +219,10 @@ export default class CitiesGraph {
     }
     getCurrentWeightTo(city) {
         return this.distanceBetweenNodes(this.currentCity, city); //this.table[this.currentCity.index][city.index].weight;
+    }
+    get bestResultWeight() {
+        return this.sortResult.subGraphs.reduce((min, g) => {
+            return !min || g.finalWeight < min ? g.finalWeight : min;
+        }, null);
     }
 }

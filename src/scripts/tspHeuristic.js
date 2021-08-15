@@ -1,4 +1,6 @@
 const _travelNextCity = (graph, sortedNodes = [], totalWeight = 0) => {
+    /** Increase amount of visited nodes */
+    graph.visitedNodes += 1;
     /** Get nearest valid city to current */
     const nearest = graph.nearestCurrentUnvisitedNeighbor;
     if (!nearest) {
