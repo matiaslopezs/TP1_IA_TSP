@@ -1,7 +1,7 @@
 import cities, { shuffledCities } from './cities.js';
 import _travelNextCityBackTracking from './tspBacktracking';
 import _travelNextCityBackHeuristic from './tspHeuristic';
-
+import _travelNextCityLasVegas from './tspLasVegas';
 export const MAX_CITIES = cities.length;
 export const SORT_HEURISTIC = "Heuristico";
 export const SORT_BACKTRACKING = "Back Tracking";
@@ -69,8 +69,8 @@ export default class CitiesGraph {
         var t0 = performance.now()
         // Start traveling
         const sortResult = this.sortType === SORT_BACKTRACKING ?
-            _travelNextCityBackTracking(this, [this.originNode]) : 
-            _travelNextCityBackHeuristic(this, [this.originNode]);
+            _travelNextCityBackTracking(this, [this.originNode]) : this.sortType === SORT_HEURISTIC ?
+            _travelNextCityBackHeuristic(this, [this.originNode]) : _travelNextCityLasVegas(this, [this.originNode]);
         // End timer
         var t1 = performance.now()
         // Set total time
