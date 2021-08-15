@@ -8,9 +8,9 @@ const _travelNextCity = (graph, sortedNodes = [], totalWeight = 0) => {
         graph.currentCity.visited = true;
         graph.currentCity = graph.originIndex;
         /** Calc calcTwoOpt */
-        const bestTwoOpt = { ...calcTwoOpt(graph, sortedNodes, finalWeight, graph.iterations), title: "2-opt" };
+        const bestTwoOpt = { ...calcTwoOpt(graph, sortedNodes.concat(graph.currentCity), finalWeight, graph.iterations), title: "2-opt" };
         /** Return subgraphs */
-        return [{ sortedNodes, finalWeight, title: "Avaro" }].concat(bestTwoOpt);
+        return [{ sortedNodes: sortedNodes.concat(graph.currentCity), finalWeight, title: "Avaro" }].concat(bestTwoOpt);
     }
     /** Set previous city to visited */
     graph.currentCity.visited = true;
@@ -54,24 +54,11 @@ function two_opt(graph, currentTour){
         for (let j = i + 1; j < n + 1; j++) {
             if (j - i === 1) continue;
             let swap = currentTour.nodes.slice(0, i).concat(currentTour.nodes.slice(i, j).reverse(), currentTour.nodes.slice(j, n));
-            let newTour = { nodes: swap, cost: cost(graph, swap) };
+            let newTour = { nodes: swap, cost: graph.nodesCost(swap) };
             if (newTour.cost < bestTour.cost) bestTour = newTour;
         }
     }
     return bestTour;
-}
-
-/** 
- * Suma de los pesos de todo el recorrido
- * nodes: { lat, lng, index }
- * */
-function cost(graph, nodes){
-    var total = 0;
-    for (let i = 1; i < nodes.length; i++) {
-        total += graph.distanceBetweenNodes(nodes[i - 1], nodes[i]);
-    }
-    total += graph.distanceBetweenNodes(nodes[nodes.length - 1], nodes[0]);
-    return total;
 }
 
 export default _travelNextCity;

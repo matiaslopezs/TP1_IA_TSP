@@ -1,25 +1,43 @@
 
-const _travelNextCity = ( graph, sortedNodes = [], totalWeight = 0 ) => {
-    
-    if( sortedNodes.length === graph.size ){
-        totalWeight+= graph.currentWeightToOrigin;
-        return [{finalWeight: totalWeight, sortedNodes: sortedNodes.concat(graph.originNode)}];
+const _travelNextCity = (graph, sortedNodes = [], totalWeight = 0) => {
+    /** Base case */
+    if (sortedNodes.length === graph.size) {
+        return [{
+            finalWeight: totalWeight + graph.currentWeightToOrigin,
+            sortedNodes: sortedNodes.concat(graph.originNode)
+        }];
     }
-    let ansArr = [{sortedNodes, finalWeight: Number.MAX_VALUE}];
-    graph.currentUnvisitedNeighbors.forEach( nextCity =>{
-        totalWeight+= graph.getCurrentWeightTo(nextCity);
+
+    const travelNextCity = (nextCity) => {
+        // Set prev city visited
         const oldCurrentCity = graph.currentCity;
-        graph.currentCity.visited = true;
+        // Set current  currect city as next city
         graph.currentCity = nextCity.index;
-        const result = _travelNextCity(graph, sortedNodes.concat(nextCity), totalWeight );
-        graph.currentCity = oldCurrentCity.index;
+        // Resolve next city
+        const result = _travelNextCity(
+            graph,
+            sortedNodes.concat(nextCity),
+            totalWeight + graph.distanceBetweenNodes(oldCurrentCity, nextCity));
+        // Set current as old and not visited
         graph.currentCity.visited = false;
-        if(result[0].finalWeight < ansArr[0].finalWeight){
-            ansArr = result;
-        }else if( result.finalWeight === ansArr[0].finalWeight ){
-            ansArr = ansArr.concat(result);
-        }
+        graph.currentCity = oldCurrentCity.index;
+        // Return the result
+        return result;
+    };
+    
+    /** Recursive case */
+    let finalReult = null;
+    graph.currentUnvisitedNeighbors.forEach(nextCity => {
+        graph.currentCity.visited = true;
+        
+        const result = travelNextCity(nextCity);
+
+        if (!finalReult || result[0].finalWeight < finalReult[0].finalWeight)
+            finalReult = result;
+        else if (result.finalWeight === finalReult[0].finalWeight)
+            finalReult = finalReult.concat(result);
     });
-    return ansArr;
+    return finalReult;
 }
+
 export default _travelNextCity;

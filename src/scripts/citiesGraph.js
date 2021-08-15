@@ -103,7 +103,7 @@ export default class CitiesGraph {
                 total.subGraphs.push({
                     title: r.title,
                     sortedNodes: r.sortedNodes,
-                    finalWeight: r.finalWeight,
+                    finalWeight: this.nodesCost(r.sortedNodes),
                     middlePoints: getMidPoints(r.sortedNodes)
                 });
                 return total;
@@ -113,6 +113,17 @@ export default class CitiesGraph {
             });
 
         return this;
+    }
+    /** 
+     * Suma de los pesos de todo el recorrido
+     * nodes: [{ lat, lng, index }]
+     * */
+    nodesCost(nodes){
+        var total = 0;
+        for (let i = 1; i < nodes.length; i++)
+            total += this.distanceBetweenNodes(nodes[i - 1], nodes[i]);
+        total += this.distanceBetweenNodes(nodes[nodes.length - 1], nodes[0]);
+        return total;
     }
     get formatedSortDate() {
         if (!this.sortDate) return "";
@@ -137,7 +148,7 @@ export default class CitiesGraph {
         return this.nodes[index];
     }
     get currentWeightToOrigin() {
-        return this.table[this.currentNodeIndex][this.originIndex].weight;
+        return this.distanceBetweenNodes(this.currentCity, this.originNode);
     }
     get nearestCurrentUnvisitedNeighbor() {
         const unvisited = this.table[this.currentNodeIndex].filter(r => !this.nodes[r.to].visited && r.weight > 0);
@@ -200,9 +211,9 @@ export default class CitiesGraph {
         return Math.floor(Math.random() * max) + min;
     }
     get currentUnvisitedNeighbors(){
-        return this.nodes.filter( n => n.index !== this.currentCity.index && !n.visited );
+        return this.nodes.filter(n => { return n.index !== this.currentCity.index && !n.visited; });
     }
-    getCurrentWeightTo(city){
-        return this.table[this.currentCity.index][city.index].weight;
+    getCurrentWeightTo(city) {
+        return this.distanceBetweenNodes(this.currentCity, city); //this.table[this.currentCity.index][city.index].weight;
     }
 }

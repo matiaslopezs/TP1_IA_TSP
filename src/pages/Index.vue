@@ -24,14 +24,14 @@
       <div>
         <div class="row q-pa-md">
           <q-checkbox left-label v-model="useRealData" class="text-grey-7" label="Usar datos reales" />
-          <q-input outlined v-model="iterations" style="width:160px;margin-right:10px" 
+          <q-input v-if="sortType === SORT_HEURISTIC || sortType === SORT_ALL" outlined v-model="iterations" style="width:160px;margin-right:10px" 
             label="Iteraciones (2-OPT)" />
           <q-input outlined v-model="cityAmount" style="width:220px" 
             :label="`Cantidad de ciudades ${useRealData ? 'Max:' + MAX_CITIES : ''}`" />
           <q-btn outline color="primary" class="q-ml-md" @click="startNewSimulation">Simular</q-btn>
           <q-btn v-if="graphs.length > 0" outline color="red" class="q-ml-md" @click="clearSimulations">Limpiar</q-btn>
           <!-- TODO: DELETE BUTTON -->
-          <q-btn style="margin-left:10px" color="primary" @click="resolveTestingBt">Backtracking testing</q-btn>
+          <!--<q-btn style="margin-left:10px" color="primary" @click="resolveTestingBt">Backtracking testing</q-btn>-->
         </div>
       </div>
     </div>
@@ -173,7 +173,7 @@ export default {
       }, {
         title: "Iteraciones 2-OPT",
         value: graph.iterations,
-        hide: !graph.sortType === SORT_HEURISTIC
+        hide: graph.sortType !== SORT_HEURISTIC
       },{
         title: "Ciudades recorridas",
         value: graph.citiesToVisit.map(c => c.name).join(", "),
